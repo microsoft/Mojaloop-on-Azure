@@ -1,14 +1,10 @@
-# Project
+# Mojaloop on Azure
 
-> This repo has been populated by an initial template to help get you started. Please
-> make sure to update the content to build a great experience for community-building.
+This project provides a set of deployment and code assets to enable the deployment of the Mojaloop payment interoperability solution natively on Azure, leveraging Azure Platform-as-a-Services capablities.
 
-As the maintainer of this project, please make a few updates:
+The assets held here should be used as a starting point for a deployment of Mojaloop on Azure. The solution as-is is not intended to provide a comprehensive "Production Ready" or "Scale Ready" version of the platform, and care should be takem to assess your own needs with regard to scalability and scaling methods, security, operations and additional capabilities, e.g. consolidated operational monitoring.
 
-- Improving this README.MD file to provide a great experience
-- Updating SUPPORT.MD with content about this project's support experience
-- Understanding the security reporting process in SECURITY.MD
-- Remove this section from the README
+For more information about the Mojaloop platform please visit https://mojaloop.io
 
 ## Contributing
 
