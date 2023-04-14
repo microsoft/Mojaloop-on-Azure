@@ -1,0 +1,27 @@
+version: '3'
+services:
+    db:
+        image: mysql
+        command: --default-authentication-plugin=mysql_native_password
+        restart: always
+        environment:
+            MYSQL_ROOT_PASSWORD: "Password"
+            MYSQL_DATABASE: "sqltest"
+            MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+        volumes:
+          - ./mysql_init/init.sql:/docker-entrypoint-initdb.d/init.sql
+        ports:
+            - 3306:3306
+    api:
+        build: .
+        container_name: mojaloop-dsfpid-validation
+        image: {devops}/mojaloop-dsfpid-validation:develop
+        restart: always
+        environment:
+            MYSQL_PASSWORD: Password
+            MYSQL_USER: root
+            MYSQL_DATABASE: sqltest
+            MYSQL_SERVER: db
+            MYSQL_PORT: 3306
+        ports:
+            - 8080:8080
