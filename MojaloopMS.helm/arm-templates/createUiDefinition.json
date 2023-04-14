@@ -1,0 +1,470 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/0.1.2-preview/CreateUIDefinition.MultiVm.json#",
+  "handler": "Microsoft.Azure.CreateUIDef",
+  "version": "0.1.2-preview",
+  "parameters": {
+    "basics": [
+      {
+        "name": "mainInfo",
+        "type": "Microsoft.Common.InfoBox",
+        "visible": true,
+        "options": {
+          "icon": "Info",
+          "text": "Prerequisites:\nPlease create SSH key pair in Azure for later use in this deployment."
+        }
+      },
+      {
+        "name": "mainMysqlInfo",
+        "type": "Microsoft.Common.InfoBox",
+        "visible": true,
+        "options": {
+          "icon": "Warning",
+          "text": "Please confirm VM sizes are available in your region for selecting a MySQL Flexible Server VM.",
+          "uri": "https://portal.azure.com/#create/Microsoft.MySQLFlexibleServer"
+        }
+      },
+      {
+        "name": "deploymentName",
+        "type": "Microsoft.Common.TextBox",
+        "label": "Deployment Name",
+        "toolTip": "The name of the Virtual Machine.",
+        "defaultValue": "mojaloop",
+        "constraints": {
+          "required": true,
+          "regex": "^[a-z0-9A-Z-]{3,10}$",
+          "validationMessage": "The Name must be between 3 and 10 characters long and contain letters, numbers and hyphens only."
+        }
+      },
+      {
+        "name": "dnsNameInfo",
+        "type": "Microsoft.Common.InfoBox",
+        "visible": true,
+        "options": {
+          "icon": "Info",
+          "text": "Please allocate a name to be used for the DNS here – this will need to be created in the zone where it is to be hosted"
+        }
+      },
+      {
+        "name": "dnsName",
+        "type": "Microsoft.Common.TextBox",
+        "label": "DNS for mojaloop",
+        "toolTip": "Services will be apended to the front .",
+        "defaultValue": "mojaloop.yourdomain.com",
+        "constraints": {
+          "required": true,
+          "regex": "^(((?!\\-))(xn\\-\\-)?[a-z0-9\\-_]{0,61}[a-z0-9]{1,1}\\.)*(xn\\-\\-)?([a-z0-9\\-]{1,61}|[a-z0-9\\-]{1,30})\\.[a-z]{2,}$",
+          "validationMessage": "Must Be a valid domain"
+        }
+      }
+    ],
+    "steps": [
+      {
+        "name": "AKSConfig",
+        "label": "AKS Settings",
+        "subLabel": {
+          "preValidation": "Configure the AKS resources and settings",
+          "postValidation": "Done"
+        },
+        "bladeTitle": "AKS Settings",
+        "elements": [
+          {
+            "name": "agentVMSizeInfo",
+            "type": "Microsoft.Common.InfoBox",
+            "visible": true,
+            "options": {
+              "icon": "Info",
+              "text": "Please select a VM size with a minimum of 4 vCPU's and 16GB's of Memory"
+            }
+          },
+          {
+            "name": "agentVMSize",
+            "type": "Microsoft.Compute.SizeSelector",
+            "label": "Virtual machine size",
+            "toolTip": "The size of virtual machine to provision.",
+            "recommendedSizes": ["Standard_D2_v2", "Standard_A2_v2"],
+            "osPlatform": "Linux",
+            "count": "1"
+          },
+          {
+            "name": "osDiskSizeGB",
+            "type": "Microsoft.Common.Slider",
+            "min": 40,
+            "max": 1023,
+            "label": "OS Disk Size",
+            "subLabel": "GB",
+            "defaultValue": 40,
+            "showStepMarkers": true,
+            "toolTip": "OS Disk Size in GB",
+            "constraints": {
+              "required": true
+            },
+            "visible": true
+          },
+          {
+            "name": "aksNodeCount",
+            "type": "Microsoft.Common.Slider",
+            "min": 1,
+            "max": 50,
+            "label": "AKS Nodes",
+            "subLabel": "Count",
+            "defaultValue": 1,
+            "showStepMarkers": false,
+            "toolTip": "AKS Nodes Count in cluster",
+            "constraints": {
+              "required": true
+            },
+            "visible": true
+          },
+          {
+            "name": "adminUsername",
+            "type": "Microsoft.Compute.UserNameTextBox",
+            "label": "Username",
+            "toolTip": "Admin username for the aks linux nodes",
+            "osPlatform": "Linux",
+            "constraints": {
+              "required": true,
+              "regex": "^[a-z0-9A-Z]{1,30}$",
+              "validationMessage": "Only alphanumeric characters are allowed, and the value must be 1-30 characters long."
+            }
+          },
+          {
+            "name": "sshRSAPublicInfo",
+            "type": "Microsoft.Common.InfoBox",
+            "visible": true,
+            "options": {
+              "icon": "Info",
+              "text": "Please select \"Use Existing\" and select the SSH Key Pair created earlier (as part of the Prerequisites)"
+            }
+          },
+          {
+            "name": "sshRSAPublicKey",
+            "type": "Microsoft.Compute.CredentialsCombo",
+            "label": {
+              "authenticationType": "Authentication type",
+              "password": "Password",
+              "confirmPassword": "Confirm password",
+              "sshPublicKey": "SSH public key"
+            },
+            "toolTip": {
+              "authenticationType": "",
+              "password": "",
+              "sshPublicKey": ""
+            },
+            "constraints": {
+              "required": true,
+              "customPasswordRegex": "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{12,}$",
+              "customValidationMessage": "The password must be alphanumeric, contain at least 12 characters, and have at least 1 letter and 1 number."
+            },
+            "options": {
+              "hideConfirmation": true,
+              "hidePassword": true
+            },
+            "osPlatform": "Linux",
+            "visible": true
+          }
+        ]
+      },
+      {
+        "name": "MYSQLConfig",
+        "label": "MySQL Settings",
+        "subLabel": {
+          "preValidation": "Configure the MySQL resources and settings",
+          "postValidation": "Done"
+        },
+        "bladeTitle": "MySQL Settings",
+        "elements": [
+          {
+            "name": "dbMySQLSkuNameInfo",
+            "type": "Microsoft.Common.InfoBox",
+            "visible": true,
+            "options": {
+              "icon": "Info",
+              "text": "Please select the VM size here that you confirmed is available in your region as part of the Prerequisites",
+              "uri": "https://portal.azure.com/#create/Microsoft.MySQLFlexibleServer"
+            }
+          },
+          {
+            "name": "dbMySQLSkuName",
+            "type": "Microsoft.Common.DropDown",
+            "label": "VM Size",
+            "placeholder": "",
+            "defaultValue": "Standard_D2ds_v4 (2 vCores, 8 GiB memory, 3200 max iops)",
+            "toolTip": "",
+            "multiselect": false,
+            "selectAll": false,
+            "filter": true,
+            "filterPlaceholder": "Filter items ...",
+            "multiLine": true,
+            "constraints": {
+              "allowedValues": [
+                {
+                  "label": "Standard_D2ds_v4 (2 vCores, 8 GiB memory, 3200 max iops)",
+                  "value": "Standard_D2ds_v4"
+                },
+                {
+                  "label": "Standard_D4ds_v4 (4 vCores, 16 GiB memory, 6400 max iops)",
+                  "value": "Standard_D4ds_v4"
+                },
+                {
+                  "label": "Standard_D8ds_v4 (8 vCores, 32 GiB memory, 12800 max iops)",
+                  "value": "Standard_D8ds_v4"
+                },
+                {
+                  "label": "Standard_D16ds_v4 (16 vCores, 64 GiB memory, 20000 max iops)",
+                  "value": "Standard_D16ds_v4"
+                },
+                {
+                  "label": "Standard_D32ds_v4 (32 vCores, 128 GiB memory, 20000 max iops)",
+                  "value": "Standard_D32ds_v4"
+                },
+                {
+                  "label": "Standard_D48ds_v4 (48 vCores, 192 GiB memory, 20000 max iops)",
+                  "value": "Standard_D48ds_v4"
+                },
+                {
+                  "label": "Standard_D64ds_v4 (64 vCores, 256 GiB memory, 20000 max iops)",
+                  "value": "Standard_D64ds_v4"
+                }
+              ],
+              "required": true
+            },
+            "visible": true
+          },
+          {
+            "name": "dbMySQLStorageSizeMB",
+            "type": "Microsoft.Common.Slider",
+            "min": 10480,
+            "max": 100000,
+            "label": "OS Disk Size",
+            "subLabel": "MB",
+            "defaultValue": 20480,
+            "showStepMarkers": true,
+            "toolTip": "OS Disk Size in MB",
+            "constraints": {
+              "required": true
+            },
+            "visible": true
+          },
+          {
+            "name": "dbMySqlStorageIops",
+            "type": "Microsoft.Common.Slider",
+            "min": 492,
+            "max": 20000,
+            "label": "Storage IOPS",
+            "defaultValue": 500,
+            "showStepMarkers": false,
+            "toolTip": "Max IOPS are determined by compute size. Allocate upto max on VM selected",
+            "constraints": {
+              "required": true
+            },
+            "visible": true
+          },
+          {
+            "name": "dbMySQLAdministratorLogin",
+            "type": "Microsoft.Compute.UserNameTextBox",
+            "label": "User name",
+            "toolTip": "Admin username for the MySQL Admin",
+            "osPlatform": "Linux",
+            "constraints": {
+              "required": true,
+              "regex": "^[a-z0-9A-Z]{1,30}$",
+              "validationMessage": "Only alphanumeric characters are allowed, and the value must be 1-30 characters long."
+            }
+          },
+          {
+            "name": "dbMySQLAdministratorLoginPassword",
+            "type": "Microsoft.Common.PasswordBox",
+            "label": {
+              "password": "Password",
+              "confirmPassword": "Confirm password"
+            },
+            "toolTip": "",
+            "constraints": {
+              "required": true,
+              "regex": "^[a-zA-Z0-9]{8,}$",
+              "validationMessage": "Password must be at least 8 characters long, contain only numbers and letters"
+            },
+            "options": {
+              "hideConfirmation": false
+            },
+            "visible": true
+          }
+        ]
+      },
+      {
+        "name": "VaultSettings",
+        "label": "Key Vault Settings",
+        "subLabel": {
+          "preValidation": "Configure the Key Vault settings",
+          "postValidation": "Done"
+        },
+        "bladeTitle": "Key Vault Settings",
+        "elements": [
+          {
+            "name": "vaultsSkuName",
+            "type": "Microsoft.Common.DropDown",
+            "label": "Pricing Tier",
+            "placeholder": "",
+            "defaultValue": "Standard",
+            "toolTip": "",
+            "multiselect": false,
+            "selectAll": false,
+            "filter": false,
+            "multiLine": true,
+            "constraints": {
+              "allowedValues": [
+                {
+                  "label": "Standard",
+                  "value": "Standard"
+                },
+                {
+                  "label": "Premium (includes support for HSM backed keys)",
+                  "value": "Premium"
+                }
+              ],
+              "required": true
+            },
+            "visible": true
+          }
+        ]
+      },
+      {
+        "name": "ApiManagementSettings",
+        "label": "Api Management Settings",
+        "subLabel": {
+          "preValidation": "Configure the api management resources and settings",
+          "postValidation": "Done"
+        },
+        "bladeTitle": "Api Management Settings",
+        "elements": [
+          {
+            "name": "apiManagementSkuName",
+            "type": "Microsoft.Common.DropDown",
+            "label": "Pricing Tier",
+            "placeholder": "",
+            "defaultValue": "Standard (99.95% SLA)",
+            "toolTip": "",
+            "multiselect": false,
+            "selectAll": false,
+            "filter": false,
+            "multiLine": true,
+            "constraints": {
+              "allowedValues": [
+                {
+                  "label": "Developer (no SLA)",
+                  "value": "Developer"
+                },
+                {
+                  "label": "Basic (99.95% SLA)",
+                  "value": "Basic"
+                },
+                {
+                  "label": "Standard (99.95% SLA)",
+                  "value": "Standard"
+                },
+                {
+                  "label": "Premium (99.95% or 99.99% SLA)",
+                  "value": "Premium"
+                },
+                {
+                  "label": "Consumption (99.95% SLA)",
+                  "value": "Consumption"
+                }
+              ],
+              "required": true
+            },
+            "visible": true
+          },
+          {
+            "name": "apiManagementSkuCapacity",
+            "type": "Microsoft.Common.Slider",
+            "min": 1,
+            "max": 7,
+            "label": "SKU",
+            "subLabel": "Capacity",
+            "defaultValue": 1,
+            "showStepMarkers": false,
+            "toolTip": "Sku Capacity",
+            "constraints": {
+              "required": true
+            },
+            "visible": true
+          },
+          {
+            "name": "apiManagementMaximumThroughputUnits",
+            "type": "Microsoft.Common.Slider",
+            "min": 1,
+            "max": 4,
+            "label": "Api Management Throughput",
+            "subLabel": "Max Throughput",
+            "defaultValue": 1,
+            "showStepMarkers": false,
+            "toolTip": "Sku Capacity",
+            "constraints": {
+              "required": true
+            },
+            "visible": true
+          },
+          {
+            "name": "apiMPublisherEmail",
+            "type": "Microsoft.Common.TextBox",
+            "label": "Publisher Email",
+            "defaultValue": "contoso123@example.com",
+            "toolTip": "Enter a valid email address",
+            "placeholder": "",
+            "multiLine": false,
+            "constraints": {
+              "required": true,
+              "validations": [
+                {
+                  "regex": "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$",
+                  "message": "Only alphanumeric characters are allowed, and the value must be 1-30 characters long."
+                }
+              ]
+            },
+            "visible": true
+          }
+        ]
+      },
+      {
+        "name": "tags",
+        "label": "Tags",
+        "elements": [
+          {
+            "name": "tagsByResource",
+            "type": "Microsoft.Common.TagsByResource",
+            "resources": [
+              "Microsoft.Storage/storageAccounts",
+              "Microsoft.Compute/virtualMachines"
+            ]
+          }
+        ]
+      }
+    ],
+    "outputs": {
+      "deploymentName": "[basics('deploymentName')]",
+      "dnsName": "[basics('dnsName')]",
+
+      "agentVMSize": "[steps('AKSConfig').agentVMSize]",
+      "osDiskSizeGB": "[steps('AKSConfig').osDiskSizeGB]",
+      "agentCount": "[steps('AKSConfig').aksNodeCount]",
+      "linuxAdminUsername": "[steps('AKSConfig').adminUsername]",
+      "sshRSAPublicKey": "[steps('AKSConfig').sshRSAPublicKey.sshPublicKey]",
+
+      "dbMySQLSkuName": "[steps('MYSQLConfig').dbMySQLSkuName]",
+      "dbMySQLStorageSizeMB": "[steps('MYSQLConfig').dbMySQLStorageSizeMB]",
+      "dbMySqlStorageIops": "[steps('MYSQLConfig').dbMySqlStorageIops]",
+      "dbMySQLAdministratorLogin": "[steps('MYSQLConfig').dbMySQLAdministratorLogin]",
+      "dbMySQLAdministratorLoginPassword": "[steps('MYSQLConfig').dbMySQLAdministratorLoginPassword]",
+
+      "vaultsSkuName": "[steps('VaultSettings').vaultsSkuName]",
+
+      "apiManagementSkuName": "[steps('ApiManagementSettings').apiManagementSkuName]",
+      "apiManagementSkuCapacity": "[steps('ApiManagementSettings').apiManagementSkuCapacity]",
+      "apiManagementMaximumThroughputUnits": "[steps('ApiManagementSettings').apiManagementMaximumThroughputUnits]",
+      "apiManagementPublisherEmail": "[steps('ApiManagementSettings').apiMPublisherEmail]",
+
+      "location": "[location()]"
+    }
+  }
+}

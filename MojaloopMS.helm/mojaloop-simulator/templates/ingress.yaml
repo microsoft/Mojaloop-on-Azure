@@ -1,0 +1,58 @@
+{{ if .Values.simulators }}
+{{- $prefix := include "mojaloop-simulator.prefix" . -}}
+{{- $dnsdomainhost  := .Values.global.dnsdomain_host -}}
+apiVersion: {{ template "mojaloop-simulator.apiVersion.Ingress" . }}
+kind: Ingress
+metadata:
+  name: {{ $prefix }}simulators
+  labels:
+    app.kubernetes.io/name: simulators
+    {{- include "mojaloop-simulator.common-labels" $ | nindent 4 }}
+{{- with .Values.ingress.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+{{- end }}
+spec:
+  rules:
+  {{- range $name, $customConfig := .Values.simulators }}
+  {{- $fullName := printf "%s%s" (include "mojaloop-simulator.prefix" $) $name -}}
+  {{- $config := merge $customConfig $.Values.defaults }}
+  {{- if $config.ingress.enabled -}}
+    {{ $hosts := default (list nil) $config.ingress.hosts }}
+    {{- range $host := $hosts }}
+      - host: {{ $host | replace ".local" $dnsdomainhost  }}
+        http:
+          paths:
+          - path: /sim/{{ $name }}/outbound{{ $.Values.ingress.ingressPathRewriteRegex }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $fullName }}-scheme-adapter
+                port:
+                  name: outboundapi
+          - path: /sim/{{ $name }}/inbound{{ $.Values.ingress.ingressPathRewriteRegex }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $fullName }}-scheme-adapter
+                port:
+                  name: inboundapi
+          - path: /sim/{{ $name }}/sdktest{{ $.Values.ingress.ingressPathRewriteRegex }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $fullName }}-scheme-adapter
+                port:
+                  name: testapi
+          - path: /sim/{{ $name }}/test{{ $.Values.ingress.ingressPathRewriteRegex }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $fullName }}-backend
+                port:
+                  name: testapi
+    {{- end }}
+  {{- end }}
+  {{- end }}
+---
+{{ end }}

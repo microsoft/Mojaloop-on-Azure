@@ -1,0 +1,38 @@
+{{- if .Values.ingress.enabled -}}
+{{- $SERVICE_FULL_NAME := include "ml-testing-toolkit-backend.fullname" . -}}
+{{- $dnsdomainhost  := .Values.global.dnsdomain_host -}}
+apiVersion: {{ template "ml-testing-toolkit-backend.apiVersion.Ingress" . }}
+kind: Ingress
+metadata:
+  name: {{ template "ml-testing-toolkit-backend.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "ml-testing-toolkit-backend.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.Version }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+  annotations:
+    {{- range $key, $value := .Values.ingress.annotations }}
+      {{ $key }}: {{ $value | quote }}
+    {{- end }}
+spec:
+  rules:
+    {{- range $hostType, $service := .Values.ingress.hosts }}
+    - host: {{ index $service "host" | replace ".local" $dnsdomainhost }}
+      http:
+        paths:
+          {{- range $path := (index $service "paths") }}
+          - path: {{ $path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $SERVICE_FULL_NAME }}
+                port:
+                  number: {{ index $service "port" }}
+          {{- end -}}
+    {{- end -}}
+  {{- if .Values.ingress.tls }}
+  tls:
+    {{ toYaml .Values.ingress.tls | indent 4 }}
+  {{- end -}}
+{{- end -}}

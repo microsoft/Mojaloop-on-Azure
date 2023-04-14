@@ -1,0 +1,14 @@
+apiVersion: v1
+description: A PathFinder oracle for ALS. Resolves MSISDN to participant ID.
+name: als-oracle-pathfinder
+version: 11.0.3
+appVersion: "11.0.4"
+home: http://mojaloop.io
+icon: http://mojaloop.io/images/logo.png
+sources:
+  - https://github.com/mojaloop/mojaloop
+  - https://github.com/mojaloop/helm
+  - https://github.com/mojaloop/als-oracle-pathfinder
+maintainers:
+  - name: Vassilis Barzokas
+    email: vassilis.barzokas@modusbox.com

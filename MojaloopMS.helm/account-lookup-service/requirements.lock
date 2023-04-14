@@ -1,0 +1,12 @@
+dependencies:
+- name: account-lookup-service
+  repository: file://./chart-service
+  version: 12.5.0
+- name: account-lookup-service-admin
+  repository: file://./chart-admin
+  version: 12.5.0
+- name: als-oracle-pathfinder
+  repository: file://../als-oracle-pathfinder
+  version: 11.0.3
+digest: sha256:fa2efdbb5cc3d3c6ac938fde5b2b2cfbfb9fbb351ee643fcd877c2ead4a0c528
+generated: "2022-09-02T09:34:38.721868946+02:00"

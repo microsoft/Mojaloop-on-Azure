@@ -1,0 +1,112 @@
+{
+	"swagger": "2.0",
+	"info": {
+		"description": "This is the documentation for the api calls that can be made to the DFSPID Validation API",
+		"version": "1.0.0",
+		"title": "DFSP-ID API",
+		"contact": {
+			"email": ""
+		},
+		"license": {
+			"name": "Apache 2.0",
+			"url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+		}
+	},
+	"tags": [
+		{
+			"name": "healthz",
+			"description": "Call to do a Health Check"
+		},
+		{
+			"name": "DFSPID",
+			"description": "Call to Validate the DFSP ID"
+		}
+	],
+	"schemes": [
+		"http",
+        "https"
+	],
+	"paths": {
+		"/healthz/ready": {
+			"get": {
+				"tags": [
+					"healthz"
+				],
+				"summary": "API call to validate readiness of the service",
+				"description": "This API call does a check if the service can connect to its data sources",
+				"operationId": "readiness",
+				"responses": {
+					"200": {
+						"description": "All data sources Connected."
+					}
+				}
+			}
+		},
+		"/healthz/live": {
+			"get": {
+				"tags": [
+					"healthz"
+				],
+				"summary": "API call to validate liveness of the service",
+				"description": "This API call does a check if the service is running",
+				"operationId": "liveness",
+				"responses": {
+					"200": {
+						"description": "Everything seems to be running"
+					}
+				}
+			}
+		},
+		"/Validate": {
+			"get": {
+				"tags": [
+					"DFSPID"
+				],
+				"summary": "Validates the DFSP id.",
+				"description": "Validates if the DFSP id is a valid existing ID in the database",
+				"operationId": "validate_dfsp_id",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+					{
+						"in": "header",
+						"name": "X-DFSP-ID",
+						"description": "The DFSP ID to be Validated",
+						"required": true,
+                        "type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "The DFSP id Matched."
+					},
+					"401": {
+						"description": "The DFSP id did not match any row in the database."
+					},
+					"500": {
+						"description": "There was an error validating the DFSP id."
+					}
+				}
+			}
+		}
+	},
+	"definitions": {
+		"DFSP-ID": {
+			"type": "object",
+			"required": [
+				"X-DFSP-ID"
+			],
+			"properties": {
+				"X-DFSP-ID": {
+					"type": "string",
+					"example": "1234"
+				}
+			}
+		}
+	},
+	"externalDocs": {
+		"description": "Find out more about Swagger",
+		"url": "http://swagger.io"
+	}
+}

@@ -1,0 +1,34 @@
+{{- if index .Values "ingress" "enabled" -}}
+{{- $dnsdomainhost  := .Values.global.dnsdomain_host -}}
+apiVersion: {{ template "apiVersion.Ingress" . }}
+kind: Ingress
+metadata:
+  name: {{ include "auth-svc.name" . }}-ingress
+  labels:
+    {{- include "auth-svc.labels" . | nindent 4 }}
+{{- with index .Values "ingress" "annotations" }}
+  annotations:
+{{ toYaml . | indent 4 }}
+{{- end }}
+spec:
+  rules:
+    {{- range $hostType, $service := .Values.ingress.hosts }}
+      - host: {{ index $service "host" | replace ".local" $dnsdomainhost }}
+        http:
+          paths:
+            {{- range $path := (index $service "paths") }}
+            - path: {{ $path }}
+              pathType: Prefix
+              backend:
+                service:
+                  name: {{ index $service "name" }}
+                  port: 
+                    number: {{ index $service "port" }}
+            {{- end -}}
+      {{- end -}}
+    {{- if .Values.ingress.tls }}
+    tls:
+      {{ toYaml .Values.ingress.tls | indent 4 }}
+    {{- end -}}
+
+{{- end }}

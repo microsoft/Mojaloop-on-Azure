@@ -1,0 +1,7 @@
+# requirements.yaml
+dependencies: []
+# - name: kafka
+#   version: 0.7.2
+#   repository: https://charts.helm.sh/incubator
+#   alias: kafka
+#   condition: kafka.enabled

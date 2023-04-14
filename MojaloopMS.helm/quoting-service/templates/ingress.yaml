@@ -1,0 +1,38 @@
+{{- if .Values.ingress.enabled -}}
+{{- $serviceName := include "quotingservice.fullname" . -}}
+{{- $dnsdomainhost  := .Values.global.dnsdomain_host -}}
+{{- $servicePort := .Values.service.ports.api.externalPort -}}
+{{- $servicePath := .Values.ingress.externalPath -}}
+apiVersion: {{ template "quotingservice.apiVersion.Ingress" . }}
+kind: Ingress
+metadata:
+  name: {{ template "quotingservice.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "quotingservice.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.Version }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+  annotations:
+    {{- range $key, $value := .Values.ingress.annotations }}
+      {{ $key }}: {{ $value | quote }}
+    {{- end }}
+spec:
+  rules:
+    {{- range $host := .Values.ingress.hosts }}
+    - host: {{ $host | replace ".local" $dnsdomainhost  }}
+      http:
+        paths:
+          - path: {{ $servicePath }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $serviceName }}
+                port:
+                  number: {{ $servicePort }}
+    {{- end -}}
+  {{- if .Values.ingress.tls }}
+  tls:
+    {{ toYaml .Values.ingress.tls | indent 4 }}
+  {{- end -}}
+{{- end -}}

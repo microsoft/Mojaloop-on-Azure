@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dfspid
+  namespace: testmiddleware
+  labels:
+    k8s-app: dfspid
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: dfspid
+  template:
+    metadata:
+      name: dfspid
+      labels:
+        k8s-app: dfspid
+    spec:
+      containers:
+        - name: dfspid
+          image: {devops}/dfspid:develop
+          env:
+          - name: SWAGGER_PREFIX
+            value: "/dfspid/"
+          - name: SWAGGERFILE_PREFIX
+            value: "/dfspid/"
+          - name: MYSQL_PASSWORD
+            value: ""
+          - name: MYSQL_USER
+            value: "central_ledger"
+          - name: MYSQL_DATABASE
+            value: "central_ledger"
+          - name: MYSQL_SERVER
+            value: "mymojatesting.mysql.database.azure.com"
+          - name: VALIDATION_QUERY
+            value: "SELECT TOP 1 * FROM participant WHERE participantId = "
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: Always
+          securityContext:
+            privileged: false
+            procMount: Default
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      imagePullSecrets:
+        - name: pullsecret
+      schedulerName: default-scheduler
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
