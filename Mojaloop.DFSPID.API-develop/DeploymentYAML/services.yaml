@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: dfspid
+  namespace: testmiddleware
+  labels:
+    k8s-app: dfspid
+spec:
+  ports:
+    - name: tcp-8080
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+  selector:
+    k8s-app: dfspid
+  type: ClusterIP
+  sessionAffinity: None

@@ -1,0 +1,32 @@
+FROM jnb-dvps-nexus.{devops}.co.za:5254/ubuntu:20.04-py3.7
+
+WORKDIR /mojaloop
+
+EXPOSE 8080
+
+ENV FLASK_APP=DFSPID_Service
+ENV FLASK_ENV=production
+ENV FLASK_DEBUG=0
+ENV SWAGGER_PREFIX="/"
+ENV SWAGGERFILE_PREFIX="/"
+
+COPY setup.py /mojaloop
+COPY DFSPID_Service /mojaloop/DFSPID_Service
+
+RUN apt update \
+ && apt install -y python3-pip
+RUN pip install flask \
+    && python3 setup.py install \
+    && apt clean \
+    && rm -rfd /var/lib/apt/lists \
+    && chgrp -R 0 /mojaloop \
+    && chmod -R g=u /mojaloop \
+    && chown -R 1001 /mojaloop \
+    && chmod -R 755 /mojaloop \
+    && mkdir -p /data \
+    && chgrp -R 0 /data \
+    && chmod -R g=u /data \
+    && chown -R 1001 /data \
+    && chmod -R 0744 /data
+USER 1001
+CMD [ "flask","run","-h","0.0.0.0","-p","8080" ]
