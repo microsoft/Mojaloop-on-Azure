@@ -328,7 +328,7 @@ bulk-centralledger:
       db_host: '$release_name-centralledger-mysql'
       db_port: 3306
       db_user: central_ledger
-      db_password: oyMxgZChuu
+      db_password: #####
       db_database: central_ledger
       db_connection_pool_min: 10
       db_connection_pool_max: 30
@@ -501,7 +501,7 @@ bulk-centralledger:
       db_host: '$release_name-centralledger-mysql'
       db_port: 3306
       db_user: central_ledger
-      db_password: oyMxgZChuu
+      db_password: #####
       db_database: central_ledger
       db_connection_pool_min: 10
       db_connection_pool_max: 30
@@ -671,7 +671,7 @@ bulk-centralledger:
       db_host: '$release_name-centralledger-mysql'
       db_port: 3306
       db_user: central_ledger
-      db_password: oyMxgZChuu
+      db_password: #####
       db_database: central_ledger
       db_connection_pool_min: 10
       db_connection_pool_max: 30
@@ -841,7 +841,7 @@ bulk-centralledger:
       db_host: '$release_name-centralledger-mysql'
       db_port: 3306
       db_user: central_ledger
-      db_password: oyMxgZChuu
+      db_password: #####
       db_database: central_ledger
       db_connection_pool_min: 10
       db_connection_pool_max: 30
@@ -993,13 +993,13 @@ mongodb:
   ## MongoDB admin password
   ## ref: https://github.com/bitnami/bitnami-docker-mongodb/blob/master/README.md#setting-the-root-password-on-first-run
   ##
-  mongodbRootPassword: adminpass
+  #mongodbRootPassword: #####
 
   ## MongoDB custom user and database
   ## ref: https://github.com/bitnami/bitnami-docker-mongodb/blob/master/README.md#creating-a-user-and-database-on-first-run
   ##
-  mongodbUsername: mojaloop
-  mongodbPassword: password
+  #mongodbUsername: mojaloop
+  #mongodbPassword: #####
   mongodbDatabase: mlos
 
 
